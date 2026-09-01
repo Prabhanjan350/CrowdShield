@@ -1,0 +1,44 @@
+CrowdShield NO STATIC FALLBACK — TEST REPORT
+============================================
+Build validation performed before packaging.
+
+PASSED
+------
+1. JavaScript syntax validation with Node.js:
+   - app.js
+   - vision.js
+   - intelligence.js
+   - ui.js
+
+2. Static fallback removal scan:
+   Confirmed runtime JS does not contain:
+   - VIDEO_PROFILES
+   - cctv1FallbackFrame
+   - trainFallbackFrame
+   - video3FallbackFrame
+   - video4FallbackFrame
+   - profile.id video-specific output branches
+
+3. DOM dependency validation:
+   Every getElementById()/q() reference used by app.js and ui.js exists in index.html.
+
+4. Intelligence-engine unit test:
+   Synthetic live measurements made ZONE A progressively more crowded.
+   The engine independently selected ZONE A as focus and generated the action from the measured pressure.
+
+5. Perception-quality gate unit test:
+   A low model-confidence frame produced VISION UNCERTAIN / MANUAL CHECK instead of a SAFE recommendation.
+
+6. Vision-engine unit test with a mocked detector:
+   Multi-zone crop detections were mapped into zones; anonymous tracking/count invariants and quality-score output were verified.
+
+7. Architecture assertions:
+   Verified presence of multi-scale crop detection, duplicate suppression, short-term track recovery, quality scoring, live calibration state and uncertainty state.
+
+LIMITATION OF THIS TEST ENVIRONMENT
+-----------------------------------
+The container's Chromium is administratively blocked from navigating to local/file URLs, so a full browser+CDN end-to-end playback test could not be executed here. The core JS modules and data-flow logic were tested independently, and all static/syntax/DOM checks passed.
+
+IMPORTANT
+---------
+No software change can make COCO-SSD perfect in extreme dense occlusion. This build mitigates the failure mode by improving recall and, crucially, refusing to convert weak perception into a confident SAFE output. For production dense-crowd perception, upgrade the detector/tracker to YOLO + ByteTrack and calibrate venue geometry.

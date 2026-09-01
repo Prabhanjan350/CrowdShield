@@ -1,0 +1,13 @@
+CrowdShield regression fix
+==========================
+Root cause:
+The previous UI-only request accidentally changed intelligence field semantics from the proven TRUE_METRICS contract (criticalOccupancy/areaM2) to safeCapacity/routeWidthM inside intelligence.js.
+
+Fix:
+1. intelligence.js restored byte-for-byte from CrowdShield_TRUE_METRICS.
+2. vision.js restored byte-for-byte from CrowdShield_TRUE_METRICS.
+3. UI Safe capacity is now only a translation layer into criticalOccupancy.
+4. Route width is contextual display metadata only; it does not feed risk/TTC/classification.
+5. Zone rectangle colors are strictly GREEN (<38), YELLOW (38-61), RED (>=62). No orange/cyan risk state.
+6. All zones initialise GREEN before analysis.
+7. Live zone integer explicitly says TRACKED PEOPLE NOW.

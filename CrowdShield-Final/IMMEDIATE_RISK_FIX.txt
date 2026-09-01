@@ -1,0 +1,14 @@
+CrowdShield IMMEDIATE RISK FIX
+
+Root causes fixed:
+1. A short ~5 s video could end before minSamples=4, leaving the entire scene CALIBRATING. Static crowd pressure is now classified from the first analysed frame; only temporal metrics warm up.
+2. The old visual-density proxy divided by an unrealistically high 6 p/10% frame reference, allowing COCO undercount in dense occlusion to look SAFE.
+3. Detector rectangles were drawn with a fixed zone colour before intelligence had classified the scene.
+
+New live-only logic:
+- tracked person density remains a measured input; counts are NOT inflated.
+- detector bbox packing within each zone is measured from the actual frame.
+- visualPressure combines tracked count-density and bbox packing. This is an occlusion-resistant risk signal, not a fake person count.
+- risk is available immediately. Growth / inflow / outflow / TTC still require video-time evidence.
+- person rectangles and zone rectangles are hard-mapped: green <38, yellow 38-61, red >=62.
+- no filename matching, known-video profile, count floor, or Train.mp4 exception exists.

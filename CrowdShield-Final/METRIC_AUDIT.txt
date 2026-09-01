@@ -1,0 +1,54 @@
+CrowdShield — Forecast Metric Audit
+===================================
+
+AUDIT FINDING ON PREVIOUS NO_STATIC_FALLBACK BUILD
+--------------------------------------------------
+The values were not random or sentiment-assigned, but three forecast metrics were not yet scientifically clean:
+1. Density was count / an automatically invented capacity (zone image area * 62). This was an occupancy proxy, not physical crowd density.
+2. Inflow/outflow mixed real track crossings with fractions of count trend. That made the displayed flow partly estimated rather than purely counted crossings.
+3. Time-to-critical used that mixed net flow and the invented capacity, so it inherited both assumptions.
+4. Timing used wall-clock inference time rather than video.currentTime, allowing machine/model speed to affect rates.
+
+CORRECTIONS IN THIS BUILD
+-------------------------
+DENSITY
+- Always-measurable metric: visual density = tracked people / zone image-area fraction.
+- Display unit when uncalibrated: people per 10% frame area.
+- Physical density (people/m²) is ONLY calculated when a real zone floor area is supplied in the venue profile.
+- CrowdShield does not pretend pixel area is square metres.
+
+INFLOW / OUTFLOW
+- Only confirmed anonymous track crossings between zone boundaries create flow events.
+- No percentage of count trend is added to inflow/outflow.
+- Events are accumulated in a rolling 10-second VIDEO-TIME window.
+- Rate = crossing events / elapsed video minutes.
+- First 5 seconds show WARMING rather than extrapolating a tiny sample.
+
+TIME-TO-CRITICAL
+- TTC = (critical occupancy - current tracked count) / measured positive net accumulation rate.
+- A real critical occupancy must be supplied by venue/operator configuration.
+- If no critical occupancy exists, CrowdShield displays SET LIMIT instead of inventing a TTC.
+- If net accumulation is <= 0.5 people/min it displays Stable.
+
+TIME BASE
+- Trend and flow now use video.currentTime.
+- Model inference speed / computer speed no longer defines people-per-minute.
+
+RISK
+- Risk remains a derived decision-support pressure index, not a physical sensor measurement.
+- When critical occupancy is configured, occupancy ratio dominates.
+- Without it, visual density is used as a clearly heuristic proxy.
+- This distinction is intentional and should be stated in a demo.
+
+NO STATIC OUTPUT
+- No filename lookup.
+- No per-video count curve.
+- No calibrated count floor.
+- No forced recommendation for videos 1-4.
+
+USER CALIBRATION UI
+-------------------
+The Forecast panel now includes optional per-zone fields for:
+- real floor area in m²
+- real critical occupancy in people
+These values are venue facts supplied by the operator. They are not derived from filenames or visual sentiment.

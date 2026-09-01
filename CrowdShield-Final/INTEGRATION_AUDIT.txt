@@ -1,0 +1,34 @@
+CrowdShield Replit UI Integration Audit
+========================================
+
+duplicate_ids: []
+missing_required_dom_ids: []
+all_engine_js_unchanged: True
+tensorflow_loaded: True
+coco_ssd_loaded: True
+ffmpeg_loaded: True
+simulation_button_enabled_in_html: True
+video_muted_for_autoplay: True
+upload_button_is_button: True
+zone_layer_before_canvas: True
+
+Core JS SHA-256 (original vs integrated):
+vision.js: unchanged=True  0e961c9ef0966ad108b405f295fb926ae9c077d7219a8334c01d67960f5c6bb2
+intelligence.js: unchanged=True  2a0c45cde437808a59941e6a02e06a8c36b16d71bee1a1dc4437b96c9ce64c25
+ui.js: unchanged=True  95de55ca9df6ed1148df5cb1f2af404c592df0dd1abde47f5e3b3891cbdc389d
+app.js: unchanged=True  4e183b582bce49def9a4544849ac7dbd2015d65ba7bbead79b7ae662b25a0560
+
+External scripts:
+https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js
+https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js
+https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js
+vision.js
+intelligence.js
+ui.js
+app.js
+
+Notes:
+- metricCalibrationRows is intentionally absent because the Optional Venue Operating Limits panel had already been removed; app.js safely null-checks it.
+- No vision/intelligence/UI/app business logic was rewritten.
+- Replit-only inline CrowdShieldUI/upload logic is absent.
+- Crowd-state colors remain engine-driven: green low/no, yellow moderate, red high/very crowded.

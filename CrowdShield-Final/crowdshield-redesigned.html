@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>CrowdShield · Venue Intelligence</title>
+<style>
+    @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
+    :root {
+      --bg: #0c1113;
+      --bg-raised: #121a1d;
+      --panel: #151f22;
+      --panel-bright: #1a292d;
+      --line: #2a383b;
+      --line-strong: #435358;
+      --text: #f2f0e9;
+      --muted: #aab8b6;
+      --faint: #718183;
+      --mint: #a8d7c5;
+      --cyan: #7cc6cb;
+      --amber: #e4b56a;
+      --red: #e17d76;
+      --green: #6cc497;
+      --shadow: 0 24px 80px #050809;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--text);
+      background: var(--bg);
+      font-family: "DM Sans", "Helvetica Neue", Arial, sans-serif;
+      letter-spacing: .01em;
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .shell { width: min(1460px, calc(100% - 48px)); margin: 0 auto; }
+    .topbar {
+      height: 82px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .brand-mark {
+      width: 33px; height: 33px; border: 1px solid #76a996;
+      border-radius: 9px; display: grid; place-items: center; position: relative;
+      background: #172623;
+    }
+    .brand-mark::before, .brand-mark::after {
+      content: ""; position: absolute; border: 1px solid var(--mint); opacity: .8;
+    }
+    .brand-mark::before { width: 12px; height: 12px; border-radius: 50%; }
+    .brand-mark::after { width: 20px; height: 20px; border-radius: 50%; opacity: .22; }
+    .brand-name { font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif; font-size: 17px; font-weight: 600; letter-spacing: -.035em; }
+    .brand-kicker { color: var(--faint); font-size: 9px; text-transform: uppercase; letter-spacing: .2em; margin-top: 3px; }
+    .system-state { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 12px; }
+    .state-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+      box-shadow: 0 0 0 4px #172b25, 0 0 16px #6cc497;
+    }
+
+    .intro { display: flex; justify-content: space-between; align-items: end; padding: 38px 0 25px; gap: 24px; }
+    .eyebrow { color: var(--cyan); text-transform: uppercase; letter-spacing: .18em; font-size: 10px; font-weight: 700; }
+    h1 { font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif; margin: 9px 0 0; font-size: clamp(30px, 4vw, 48px); line-height: .98; letter-spacing: -.065em; font-weight: 500; }
+    .intro-copy { margin: 13px 0 0; color: var(--muted); font-size: 13px; max-width: 590px; line-height: 1.65; }
+    .flow { display: flex; align-items: center; gap: 9px; padding-bottom: 3px; white-space: nowrap; }
+    .flow-step { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .13em; }
+    .flow-step.active { color: var(--mint); }
+    .flow-arrow { color: var(--faint); font-size: 13px; }
+
+    .section { padding: 27px 0 7px; }
+    .section-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+    .section-title { display: flex; align-items: center; gap: 12px; }
+    .section-number { color: var(--mint); font-size: 10px; font-weight: 700; letter-spacing: .14em; }
+    h2 { font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif; font-size: 13px; text-transform: uppercase; letter-spacing: .12em; margin: 0; font-weight: 600; }
+    .section-caption { color: var(--faint); font-size: 11px; }
+
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+    .observe-grid { display: grid; grid-template-columns: minmax(0, 1.62fr) minmax(310px, .78fr); gap: 15px; }
+    .video-card { overflow: hidden; }
+    .video-toolbar { height: 62px; padding: 0 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); }
+    .video-meta { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .live-pip { color: var(--red); border: 1px solid #68403f; border-radius: 5px; padding: 5px 7px; font-size: 9px; letter-spacing: .14em; font-weight: 750; }
+    .file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 12px; }
+    .upload-btn, .primary-btn {
+      border: 1px solid #76a996; background: #172623; color: var(--mint);
+      border-radius: 7px; padding: 9px 13px; font-size: 11px; font-weight: 700; letter-spacing: .05em;
+      transition: .2s ease;
+    }
+    .upload-btn:hover, .primary-btn:hover { background: #20362f; border-color: var(--mint); transform: translateY(-1px); }
+    .video-stage {
+      position: relative; aspect-ratio: 16 / 9; min-height: 300px; overflow: hidden;
+      background: #0e1a1d;
+    }
+    .video-stage::before, .video-stage::after { display: none; }
+    .video-empty { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; text-align: center; }
+    .empty-inner { transform: translateY(-2px); }
+    .empty-icon { width: 46px; height: 46px; border: 1px solid var(--line-strong); border-radius: 13px; display: grid; place-items: center; margin: 0 auto 15px; color: var(--cyan); }
+    .empty-icon svg { width: 20px; }
+    .empty-title { font-size: 14px; font-weight: 630; }
+    .empty-copy { color: var(--faint); font-size: 11px; margin-top: 7px; }
+    #video { display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #020708; z-index: 1; }
+    #zoneLayer { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+    #detectCanvas { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; pointer-events: none; }
+    .stage-corner { position: absolute; z-index: 5; color: var(--faint); font-size: 9px; letter-spacing: .12em; }
+    .stage-corner.tl { top: 13px; left: 15px; } .stage-corner.br { right: 15px; bottom: 13px; }
+    .video-footer { min-height: 50px; display: flex; align-items: center; justify-content: space-between; gap: 15px; border-top: 1px solid var(--line); padding: 10px 18px; }
+    .status-cluster { display: flex; flex-wrap: wrap; gap: 17px; }
+    .status-item { color: var(--muted); font-size: 10px; }
+    .status-label { color: var(--faint); text-transform: uppercase; letter-spacing: .11em; margin-right: 5px; }
+    .engine-progress { display: none; }
+    .privacy { color: var(--green); font-size: 10px; white-space: nowrap; }
+    .privacy::before { content: "◌"; margin-right: 6px; font-size: 14px; vertical-align: -1px; }
+
+    .forecast-card { padding: 21px; min-height: 100%; position: relative; overflow: hidden; background: #17272a; border-color: #324a4c; }
+    .forecast-card::before { content: ""; position: absolute; width: 210px; height: 210px; right: -75px; top: -75px; border: 1px solid #30484b; border-radius: 50%; }
+    .forecast-card::after { content: ""; position: absolute; width: 7px; height: 7px; right: 84px; top: 26px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 14px var(--cyan); }
+    .card-kicker { color: var(--faint); font-size: 10px; letter-spacing: .15em; text-transform: uppercase; font-weight: 700; }
+    .forecast-head { display: flex; justify-content: space-between; align-items: start; position: relative; z-index: 1; }
+    .mode-pill { color: var(--amber); border: 1px solid #755d37; background: #282219; border-radius: 20px; font-size: 9px; padding: 5px 8px; letter-spacing: .1em; text-transform: uppercase; }
+    .focus-zone { margin: 35px 0 7px; font-size: clamp(30px, 4vw, 45px); letter-spacing: -.06em; font-weight: 500; }
+    .awaiting { color: var(--faint); font-size: 11px; }
+    .orbit { height: 1px; background: var(--cyan); margin: 23px 0 17px; opacity: .5; }
+    .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px 20px; }
+    .metric-label { color: var(--faint); text-transform: uppercase; letter-spacing: .1em; font-size: 9px; }
+    .metric-value { color: var(--text); font-size: 19px; font-weight: 600; letter-spacing: -.03em; margin-top: 6px; }
+    .metric-unit { color: var(--faint); font-size: 9px; margin-left: 3px; letter-spacing: 0; }
+    .focus-zone, .metric-value, .mini-value, .zone-count, .risk-number, .event-time { font-family: "IBM Plex Mono", "Courier New", monospace; }
+
+    .zones-card { padding: 18px; }
+    .zones-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 11px; }
+    .zcard, .zone-card { position: relative; min-height: 137px; padding: 15px; background: #101a1d; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    .zcard::before, .zone-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--line-strong); }
+    .zcard.safe::before, .zone-card[data-condition="green"]::before { background: var(--green); } .zcard.moderate::before, .zone-card[data-condition="yellow"]::before { background: var(--amber); } .zcard.danger::before, .zone-card[data-condition="red"]::before { background: var(--red); }
+    .name, .zone-name { color: var(--mint); font-size: 12px; font-weight: 700; letter-spacing: .1em; }
+    .badge { float: right; color: var(--faint); font-size: 9px; text-transform: uppercase; letter-spacing: .1em; }
+    .safe .badge { color: var(--green); } .moderate .badge { color: var(--amber); } .danger .badge { color: var(--red); }
+    .count, .zone-count { font-size: 30px; line-height: 1; letter-spacing: -.06em; margin: 25px 0 7px; font-weight: 570; }
+    .count-label, .zone-label { color: var(--faint); font-size: 9px; letter-spacing: .1em; }
+    .zone-extra { color: var(--muted); font-size: 10px; line-height: 1.5; margin-top: 9px; }
+    .load { color: var(--amber); font-size: 10px; }
+    .widthFlow { height: 3px; width: 100%; margin-top: 12px; background: var(--line); border-radius: 3px; }
+    .widthFlow > * { display: block; height: 100%; background: var(--cyan); border-radius: inherit; }
+    .notice { color: var(--faint); max-width: 850px; font-size: 10px; line-height: 1.65; margin: 12px 2px 0; }
+    .notice strong { color: var(--muted); font-weight: 500; }
+    .metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 11px; margin-top: 17px; }
+    .mini-metric { padding: 15px 17px; border: 1px solid var(--line); background: #101a1d; border-radius: 9px; }
+    .mini-value { font-size: 22px; margin-top: 9px; color: var(--text); letter-spacing: -.05em; }
+
+    .lower-grid { display: grid; grid-template-columns: minmax(0, 1.22fr) minmax(310px, .78fr); gap: 15px; }
+    .act-card { padding: 21px; border-color: #68403f; background: #241b1d; }
+    .act-card .card-kicker { color: var(--red); }
+    .act-action { font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif; color: var(--text); font-size: clamp(22px, 3vw, 33px); line-height: 1.03; letter-spacing: -.06em; font-weight: 500; margin: 19px 0 11px; max-width: 470px; }
+    .act-explanation { min-height: 52px; max-width: 580px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .confidence-line { display: flex; align-items: center; gap: 10px; margin-top: 21px; color: var(--faint); font-size: 10px; text-transform: uppercase; letter-spacing: .1em; }
+    .confidence-track { width: 110px; height: 3px; background: var(--line); border-radius: 3px; } .confidence-track span { display: block; width: 0; height: 100%; background: var(--red); border-radius: inherit; }
+    .simulate-card { padding: 21px; background: #121c1f; }
+    .options { margin: 20px 0 17px; display: grid; gap: 8px; }
+    .options-empty { color: var(--faint); border: 1px dashed var(--line-strong); border-radius: 8px; padding: 15px; font-size: 11px; }
+    .sim-option, .option { text-align: left; color: var(--muted); background: #101a1d; border: 1px solid var(--line); border-radius: 8px; padding: 11px 13px; font-size: 11px; }
+    .sim-option.active, .option.selected { border-color: var(--cyan); color: var(--text); background: #193033; }
+    .risk-time { display: block; color: var(--faint); font-family: "DM Sans", "Helvetica Neue", Arial, sans-serif; font-size: 9px; letter-spacing: 0; margin-top: 3px; }
+    .primary-btn { width: 100%; padding: 12px; }
+    .sim-result { border-top: 1px solid var(--line); margin-top: 19px; padding-top: 18px; }
+    .risk-compare { display: flex; align-items: center; gap: 13px; margin: 13px 0 10px; }
+    .risk-number { font-size: 24px; letter-spacing: -.05em; }
+    .risk-arrow { color: var(--faint); font-size: 18px; }
+    .sim-explanation { color: var(--faint); font-size: 10px; line-height: 1.6; }
+
+    .timeline-card { padding: 19px 21px 22px; }
+    .timeline-empty { display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--line); margin-top: 4px; padding-top: 20px; color: var(--faint); font-size: 11px; }
+    .timeline-empty::before { content: ""; width: 6px; height: 6px; border: 1px solid var(--line-strong); border-radius: 50%; }
+    .timeline-event { display: grid; grid-template-columns: 78px 1fr; gap: 15px; border-top: 1px solid var(--line); padding: 15px 0; }
+    .event-time { color: var(--faint); font-size: 10px; } .event-title { color: var(--text); font-size: 11px; font-weight: 650; } .event-desc { color: var(--muted); font-size: 10px; margin-top: 4px; }
+    .footer { padding: 35px 0 42px; color: var(--faint); font-size: 10px; display: flex; justify-content: space-between; gap: 20px; }
+
+    @media (max-width: 900px) {
+      .observe-grid, .lower-grid { grid-template-columns: 1fr; }
+      .forecast-card { min-height: 360px; }
+    }
+    @media (max-width: 600px) {
+      .shell { width: min(100% - 28px, 1460px); }
+      .topbar { height: 70px; } .system-state { font-size: 0; } .system-state .state-dot { margin-right: 1px; }
+      .intro { display: block; padding-top: 28px; } .flow { margin-top: 21px; }
+      .video-toolbar { padding: 0 12px; } .file-name { max-width: 135px; } .video-footer { display: block; } .privacy { margin-top: 10px; }
+      .zones-grid { grid-template-columns: 1fr 1fr; } .metrics-row { grid-template-columns: 1fr 1fr; }
+      .zone-empty { grid-column: 1 / -1; } .section-caption { display: none; } .footer { display: block; } .footer span + span { display: block; margin-top: 7px; }
+    }
+  
+
+    /* CrowdShield engine compatibility layer — presentation only; no analytics logic. */
+    :root { --yellow: var(--amber); }
+    #video { object-fit: fill; }
+    #zoneLayer { width:100%; height:100%; overflow:visible; }
+    .dynamic-zone { position:absolute; border:2px solid var(--green); pointer-events:none; z-index:2; }
+    .dynamic-zone span { position:absolute; top:-27px; left:-2px; padding:5px 7px; border-radius:6px 6px 0 0; font-size:9px; font-weight:800; white-space:nowrap; }
+    .entrance-zone { position:absolute; border:2px dashed #74a7ff; background:rgba(116,167,255,.05); pointer-events:none; z-index:1; }
+    .entrance-zone span { position:absolute; bottom:4px; left:4px; padding:5px 7px; border-radius:6px; background:#74a7ff; color:#06111b; font-size:9px; font-weight:800; white-space:nowrap; }
+    .engine-progress-track { height:3px; width:100%; background:#172326; overflow:hidden; }
+    .engine-progress-track > #progress { display:block; height:100%; width:0; background:var(--cyan); transition:width .3s linear; }
+    #transcodeStatus { display:none; }
+    #transcodeStatus.active { display:inline; }
+    .count-wrap { margin:24px 0 8px; }
+    .count-wrap .count { margin:0 0 6px; }
+    .zone-extra { display:grid; grid-template-columns:1fr; gap:3px; padding-top:9px; border-top:1px solid var(--line); }
+    .zone-extra span { color:var(--faint); font-size:8px; text-transform:uppercase; letter-spacing:.08em; }
+    .zone-extra b { margin:0 0 5px; font-size:10px; font-weight:600; }
+    .widthFlow { height:auto; width:auto; margin:0; background:none; border-radius:0; color:var(--muted); }
+    .load { color:var(--muted); }
+    .badge { display:inline-block; margin-top:3px; padding:5px 7px; border-radius:6px; font-size:9px; font-weight:700; }
+    .badge.safe { background:#102b20; color:var(--green); }
+    .badge.moderate { background:#332c11; color:var(--yellow); }
+    .badge.danger { background:#351219; color:var(--red); }
+    .zcard:has(.badge.safe)::before { background:var(--green); }
+    .zcard:has(.badge.moderate)::before { background:var(--yellow); }
+    .zcard:has(.badge.danger)::before { background:var(--red); }
+    .sim-option small { display:block; color:var(--faint); margin-top:5px; font-size:9px; }
+    #feed .event { display:grid; grid-template-columns:78px 1fr; gap:15px; border-top:1px solid var(--line); padding:15px 0; }
+    #feed .event:first-child { border-top:0; }
+    #feed .time { color:var(--faint); font-family:"IBM Plex Mono","Courier New",monospace; font-size:10px; }
+    #feed .evt b { display:block; color:var(--text); font-size:11px; font-weight:650; margin-bottom:4px; }
+    #feed .evt span { color:var(--muted); font-size:10px; line-height:1.5; }
+
+     /* Premium command-centre layout. Presentation only; engine contracts remain unchanged. */
+     body { background: #0a0f11; }
+     .shell { width: min(1500px, calc(100% - 56px)); }
+     .topbar { height: 70px; }
+     .intro { padding: 25px 0 18px; }
+     h1 { font-size: clamp(29px, 3.4vw, 42px); }
+     .section { padding: 18px 0 6px; }
+     .command-grid { display:grid; grid-template-columns:minmax(0, 1.9fr) minmax(360px, .9fr); gap:16px; align-items:stretch; }
+     .command-grid > .video-card { min-width:0; }
+     .command-grid > .decision-center { min-width:0; }
+     .workspace-grid { display:grid; grid-template-columns:minmax(0, 1.9fr) minmax(360px, .9fr); gap:16px; align-items:start; }
+     .workspace-left { min-width:0; }
+     .workspace-left .command-grid { display:block; }
+     .workspace-left .video-card { width:100%; }
+     .decision-center { display:flex; flex-direction:column; gap:14px; padding:16px; border:1px solid var(--line); border-radius:12px; background:#121c1f; box-shadow:var(--shadow); }
+     .decision-heading { display:flex; align-items:center; justify-content:space-between; padding-bottom:2px; }
+     .decision-heading h2 { color:var(--text); font-size:12px; }
+     .decision-heading .section-number { color:var(--red); }
+     .decision-subtitle { color:var(--faint); font-size:10px; }
+     .decision-center #forecast { order:1; }
+     .decision-center #act { order:2; }
+     .decision-center #simulation { order:3; }
+     .decision-center #forecast,
+     .decision-center #act,
+     .decision-center #simulation { width:100%; min-height:0; }
+     .decision-center #forecast { padding:0 0 14px; border:0; border-bottom:1px solid var(--line); border-radius:0; background:transparent; box-shadow:none; }
+     .decision-center #forecast::before,
+     .decision-center #forecast::after { display:none; }
+     .decision-center .forecast-head { align-items:center; }
+     .decision-center .focus-zone { margin:18px 0 5px; font-size:32px; }
+     .decision-center .orbit { margin:14px 0; opacity:.35; }
+     .decision-center .metric-grid { gap:12px 16px; }
+     .decision-center .metric-value { font-size:16px; }
+     .decision-center #act { padding:14px 0; border:0; border-bottom:1px solid var(--line); border-radius:0; background:transparent; }
+     .decision-center .act-action { margin:12px 0 8px; font-size:clamp(20px, 2.3vw, 27px); }
+     .decision-center .act-explanation { min-height:0; font-size:11px; }
+     .decision-center .confidence-line { margin-top:14px; }
+     .decision-center #simulation { padding:0; background:transparent; border:0; box-shadow:none; }
+     .decision-center .options { margin:12px 0; }
+     .decision-center .sim-option { padding:9px 11px; }
+     .decision-center .sim-result { margin-top:14px; padding-top:14px; }
+     .decision-center .primary-btn { min-height:42px; color:#091311; background:var(--mint); border-color:var(--mint); }
+     .decision-center .primary-btn:hover { color:#091311; background:#c2ead9; }
+     .video-stage { min-height:420px; }
+     .video-footer { min-height:46px; }
+     .analysis-section { padding-top:22px; }
+     .workspace-left .analysis-section { padding-top:20px; }
+     .timeline-section { padding-top:18px; }
+     .zones-card { padding:16px; }
+     .metrics-row { margin-top:14px; }
+     .timeline-card { padding:15px 19px 18px; }
+     .keyboard-focus:focus-visible,
+     button:focus-visible,
+     input:focus-visible,
+     label:has(input:focus-visible) { outline:2px solid var(--cyan); outline-offset:3px; }
+     @media (max-width: 1000px) {
+       .workspace-grid { grid-template-columns:minmax(0, 1.45fr) minmax(320px, .9fr); }
+       .video-stage { min-height:340px; }
+     }
+     @media (max-width: 820px) {
+       .shell { width:min(100% - 32px, 1500px); }
+       .workspace-grid { grid-template-columns:1fr; }
+       .decision-center { display:grid; grid-template-columns:1fr 1fr; gap:0 16px; }
+       .decision-heading { grid-column:1 / -1; margin-bottom:14px; }
+       .decision-center #forecast { grid-column:1 / -1; }
+       .decision-center #act { padding-right:16px; border-right:1px solid var(--line); border-bottom:0; }
+       .decision-center #simulation { padding-left:0; }
+       .video-stage { min-height:0; }
+     }
+     @media (max-width: 600px) {
+       .shell { width:calc(100% - 28px); }
+       .decision-center { display:flex; }
+       .decision-center #act { padding-right:0; border-right:0; border-bottom:1px solid var(--line); }
+       .decision-center #simulation { padding-left:0; }
+     }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script></head>
+<body>
+
+<!--
+REPLIT AI INSTRUCTIONS:
+- This is a SINGLE-FILE version of the working CrowdShield application.
+- You may redesign/rearrange HTML and CSS for UI/UX improvements.
+- Preserve all element IDs used by the application.
+- DO NOT alter the CrowdShield engine JavaScript blocks near the bottom:
+  vision.js, intelligence.js, ui.js, app.js.
+- Do not add fake crowd values, hardcoded zone states, or replacement analytics.
+- Crowd-state colours are supplied dynamically by the existing engine.
+-->
+
+<div class="shell">
+<header class="topbar">
+<div class="brand">
+<div aria-hidden="true" class="brand-mark"></div>
+<div><div class="brand-name">CrowdShield</div><div class="brand-kicker">Venue intelligence system</div></div>
+</div>
+<div class="system-state"><span class="state-dot"></span><span>Prototype Engine Online</span></div>
+</header>
+<main>
+<div class="intro">
+<div>
+<div class="eyebrow">Operational overview · 01</div>
+<h1>From observation<br/>to intervention.</h1>
+<p class="intro-copy">A single command view for understanding crowd conditions, anticipating pressure, and choosing the next safest action.</p>
+</div>
+<div aria-label="CrowdShield workflow" class="flow">
+<span class="flow-step active">Observe</span><span class="flow-arrow">→</span><span class="flow-step">Forecast</span><span class="flow-arrow">→</span><span class="flow-step">Simulate</span><span class="flow-arrow">→</span><span class="flow-step">Act</span>
+</div>
+</div>
+<section class="section" id="observe">
+<div class="section-heading"><div class="section-title"><span class="section-number">01</span><h2>Observe · Venue video intelligence</h2></div><span class="section-caption">Live source and detector surface</span></div>
+<div class="workspace-grid">
+<div class="workspace-left">
+<div class="command-grid">
+<article class="card video-card">
+<div class="video-toolbar">
+<div class="video-meta"><span class="live-pip">SOURCE</span><span class="file-name" id="fileChip">Awaiting video</span></div>
+<button class="upload-btn" id="uploadBtn" type="button">Upload video</button><input accept="video/*,.mkv,.avi,.mov,.webm,.m4v,.ts,.mts,.m2ts,.flv,.wmv,.3gp,.ogv" hidden="" id="videoInput" type="file"/>
+</div>
+<div class="video-stage" id="videoWrap">
+<video controls="" id="video" muted="" playsinline=""></video>
+<div aria-label="Spatial zone overlay" id="zoneLayer"></div>
+<canvas aria-label="Person detection overlay" id="detectCanvas"></canvas>
+<div class="stage-corner tl">CAMERA FEED · OVERLAY READY</div><div class="stage-corner br">00:00:00 · LOCAL SOURCE</div>
+<div class="video-empty" id="emptyState"><div class="empty-inner"><div class="empty-icon"><svg fill="none" stroke="currentColor" stroke-width="1.3" viewbox="0 0 24 24"><path d="m4 6 6 6-6 6M13 18h7M13 6h7"></path></svg></div><div class="empty-title">Upload a venue or CCTV video</div><div class="empty-copy">Analysis viewport is ready for an engine connection</div></div></div>
+</div>
+<div class="video-footer">
+<div class="status-cluster"><span class="status-item"><span class="status-label">Analysis</span><span id="analysisChip">Awaiting analysis</span></span><span class="status-item"><span class="status-label">Detector</span>Awaiting model</span><span class="status-item" id="transcodeStatus"><span class="status-label">Conversion</span><span id="transcodeText">Not required</span></span><div class="engine-progress-track"><i id="progress"></i></div></div>
+<div class="privacy">Anonymous detections · No face recognition</div>
+</div>
+</article>
+</div>
+<section class="section analysis-section">
+<div class="section-heading"><div class="section-title"><span class="section-number">02</span><h2>Live video analysis</h2></div><span class="section-caption">Spatial zone condition · dynamic surface</span></div>
+<article class="card zones-card">
+<div class="zones-grid" id="zoneCards"></div>
+<p class="notice"><strong>Zone counts are live anonymous tracked-person counts derived from detector/tracker evidence.</strong> They are not manually estimated or preset values. Dense crowd risk can be higher than raw tracked-person count suggests: heavy crowd occlusion may prevent every individual from being separately detected.</p>
+<div class="metrics-row">
+<div class="mini-metric"><div class="metric-label">Crowd growth</div><div class="mini-value" id="growth">— <span class="metric-unit">people / min</span></div></div>
+<div class="mini-metric"><div class="metric-label">Focus zone flow</div><div class="mini-value" id="focusFlow">— <span class="metric-unit">people / min</span></div></div>
+<div class="mini-metric"><div class="metric-label">Safest alternate zone</div><div class="mini-value" id="bestCapacity">—</div></div>
+<div class="mini-metric"><div class="metric-label">Confidence</div><div class="mini-value" id="metricConfidence">—</div></div>
+</div>
+</article>
+</section>
+</div>
+<aside class="decision-center" aria-labelledby="decisionCenterTitle">
+<div class="decision-heading"><div class="section-title"><span class="section-number">04</span><h2 id="decisionCenterTitle">Decision center</h2></div><span class="decision-subtitle">Observe · decide · test</span></div>
+<article class="card forecast-card" id="forecast">
+<div class="forecast-head"><div class="card-kicker">02 · Forecast / intelligence orbit</div><div class="mode-pill" id="forecastMode">Awaiting analysis</div></div>
+<div class="focus-zone" id="focusZone">—</div><div class="card-kicker">Focus zone</div>
+<div class="orbit"></div>
+<div class="metric-grid">
+<div><div class="metric-label">Risk score</div><div class="metric-value" id="riskScore">—<span class="metric-unit">%</span></div></div>
+<div><div class="metric-label">Visual density</div><div class="metric-value" id="density">—<span class="metric-unit" id="densityLabel">people / 10% frame</span></div></div>
+<div><div class="metric-label">Inflow</div><div class="metric-value" id="inflow">—<span class="metric-unit">people / min</span></div></div>
+<div><div class="metric-label">Outflow</div><div class="metric-value" id="outflow">—<span class="metric-unit">people / min</span></div></div>
+<div><div class="metric-label">Crowd trend</div><div class="metric-value" id="ttc">—</div></div>
+</div>
+</article>
+<article class="card act-card" id="act">
+<div class="card-kicker">Recommended action</div>
+<div class="act-action" id="recommendedAction">Recommendation awaiting analysis.</div>
+<div class="act-explanation" id="reason">CrowdShield will explain the recommended operator response here once the analysis engine has enough evidence.</div>
+<div class="confidence-line">Recommendation confidence <div class="confidence-track" style="display:none"><span id="confidenceBar"></span></div><span id="confidence">—</span></div>
+</article>
+<article class="card simulate-card" id="simulation">
+<div class="card-kicker">03 · Test an intervention</div>
+<div class="options" id="simOptions"></div>
+<button class="primary-btn" id="simulateBtn">Run intervention simulation</button>
+<div class="sim-result"><div class="metric-label">Current risk <span class="risk-arrow">→</span> projected risk</div><div class="risk-compare"><span class="risk-number"><span id="beforeRisk">—</span><span class="risk-time" id="beforeTime"></span></span><span class="risk-arrow">→</span><span class="risk-number"><span id="afterRisk">—</span><span class="risk-time" id="afterTime"></span></span></div><div class="sim-explanation" id="decisionBox">No simulation has been executed.</div></div>
+</article>
+</aside>
+</div>
+</section>
+<section class="section timeline-section">
+<div class="section-heading"><div class="section-title"><span class="section-number">03</span><h2>Operator timeline</h2></div><span class="section-caption">Chronological system events</span></div>
+<article class="card timeline-card"><div id="feed"></div></article>
+</section>
+</main>
+<footer class="footer"><span>CrowdShield / Prototype control surface</span><span>Conditions are engine-supplied · Values intentionally unpopulated</span></footer>
+</div>
+<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+
+<!-- BEGIN vision.js -->
+<script>
+/* CrowdShield — LIVE PERCEPTION ENGINE
+   No video-specific fallback counts.
+   Reliability strategy: multi-scale zone crops + NMS + anonymous track persistence + quality scoring. */
+(function(global){
+  'use strict';
+
+  function createVisionEngine(options){
+    const opts=Object.assign({
+      confidence:.30,
+      maxDetections:100,
+      minHeightRatio:.020,
+      minWidthRatio:.004,
+      cropPadding:.08,
+      carryMisses:2,
+      confirmHits:2,
+      nmsIoU:.42,
+      modelBase:'mobilenet_v2'
+    },options||{});
+
+    let model=null;
+    let tracks=[];
+    let nextTrackId=1;
+    let previousTimestamp=null;
+    let sampleIndex=0;
+    let flowEvents={};
+    let firstVideoTimeMs=null;
+    const FLOW_WINDOW_MS=10000;
+    const FLOW_WARMUP_MS=5000;
+
+    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+    const inside=(px,py,r,w,h)=>px>=r.x*w&&px<(r.x+r.w)*w&&py>=r.y*h&&py<(r.y+r.h)*h;
+
+    async function load(){
+      if(model)return model;
+      if(!global.cocoSsd)throw new Error('COCO-SSD library unavailable');
+      if(global.tf&&tf.setBackend){
+        try{await tf.setBackend('webgl');await tf.ready();}catch(_){/* CPU fallback is acceptable */}
+      }
+      model=await cocoSsd.load({base:opts.modelBase});
+      return model;
+    }
+
+    function zoneAt(px,py,profile,w,h){
+      for(const z of (profile.zones||[]))if(inside(px,py,z.rect,w,h))return z;
+      return null;
+    }
+
+    function iou(a,b){
+      const ax2=a[0]+a[2],ay2=a[1]+a[3],bx2=b[0]+b[2],by2=b[1]+b[3];
+      const ix=Math.max(0,Math.min(ax2,bx2)-Math.max(a[0],b[0]));
+      const iy=Math.max(0,Math.min(ay2,by2)-Math.max(a[1],b[1]));
+      const inter=ix*iy;
+      const union=a[2]*a[3]+b[2]*b[3]-inter;
+      return union>0?inter/union:0;
+    }
+
+    function suppressDuplicates(items){
+      const sorted=[...items].sort((a,b)=>b.score-a.score);
+      const keep=[];
+      for(const d of sorted){
+        const duplicate=keep.some(k=>{
+          const footDist=Math.hypot(d.foot.x-k.foot.x,d.foot.y-k.foot.y);
+          const scale=Math.max(18,Math.min(d.bbox[3],k.bbox[3])*.35);
+          return iou(d.bbox,k.bbox)>=opts.nmsIoU || (footDist<scale && iou(d.bbox,k.bbox)>.12);
+        });
+        if(!duplicate)keep.push(d);
+      }
+      return keep;
+    }
+
+    function mapPrediction(pred,offsetX,offsetY,scaleX,scaleY,w,h,profile,source){
+      const [cx,cy,cw,ch]=pred.bbox;
+      const x=offsetX+cx*scaleX,y=offsetY+cy*scaleY,bw=cw*scaleX,bh=ch*scaleY;
+      if(bh<h*opts.minHeightRatio||bw<w*opts.minWidthRatio)return null;
+      const foot={x:x+bw*.5,y:y+bh*.96};
+      const zone=zoneAt(foot.x,foot.y,profile,w,h);
+      return {bbox:[x,y,bw,bh],score:pred.score,foot,zoneId:zone?zone.id:null,zone,source};
+    }
+
+    function expandedRect(r,w,h){
+      const padX=r.w*opts.cropPadding,padY=r.h*opts.cropPadding;
+      const x=clamp(r.x-padX,0,1),y=clamp(r.y-padY,0,1);
+      const x2=clamp(r.x+r.w+padX,0,1),y2=clamp(r.y+r.h+padY,0,1);
+      return {x:x*w,y:y*h,w:(x2-x)*w,h:(y2-y)*h};
+    }
+
+    async function detectZoneCrops(video,profile,w,h){
+      const all=[];
+      // Cropping each spatial zone makes distant/small people occupy more of the detector input.
+      for(const z of (profile.zones||[])){
+        const r=expandedRect(z.rect,w,h);
+        const crop=document.createElement('canvas');
+        const targetW=Math.min(720,Math.max(360,Math.round(r.w*1.35)));
+        const targetH=Math.max(240,Math.round(targetW*(r.h/Math.max(1,r.w))));
+        crop.width=targetW;crop.height=Math.min(720,targetH);
+        const c=crop.getContext('2d',{alpha:false});
+        c.drawImage(video,r.x,r.y,r.w,r.h,0,0,crop.width,crop.height);
+        const preds=await model.detect(crop,opts.maxDetections,opts.confidence);
+        const sx=r.w/crop.width,sy=r.h/crop.height;
+        for(const p of preds){
+          if(p.class!=='person'||p.score<opts.confidence)continue;
+          const m=mapPrediction(p,r.x,r.y,sx,sy,w,h,profile,'crop');
+          if(m)all.push(m);
+        }
+      }
+      return all;
+    }
+
+    async function detectFullFrame(video,profile,w,h){
+      const preds=await model.detect(video,opts.maxDetections,opts.confidence);
+      const out=[];
+      for(const p of preds){
+        if(p.class!=='person'||p.score<opts.confidence)continue;
+        const m=mapPrediction(p,0,0,1,1,w,h,profile,'full');
+        if(m)out.push(m);
+      }
+      return out;
+    }
+
+    function resetTracking(){
+      tracks=[];nextTrackId=1;previousTimestamp=null;sampleIndex=0;flowEvents={};firstVideoTimeMs=null;
+    }
+
+    function matchTracks(detections,profile,w,h,videoTimeMs){
+      const now=videoTimeMs;
+      const previous=tracks;
+      const usedTracks=new Set();
+      const usedDetections=new Set();
+      const pairs=[];
+
+      // Build candidate matches and greedily take the best normalized distance.
+      detections.forEach((d,di)=>previous.forEach((t,ti)=>{
+        const predictedX=t.x+(t.vx||0),predictedY=t.y+(t.vy||0);
+        const dist=Math.hypot(d.foot.x-predictedX,d.foot.y-predictedY);
+        const size=Math.max(30,(t.h||d.bbox[3]||40)*1.25);
+        const zonePenalty=t.zoneId&&d.zoneId&&t.zoneId!==d.zoneId?18:0;
+        const cost=(dist+zonePenalty)/size;
+        if(cost<=1.85)pairs.push({di,ti,cost});
+      }));
+      pairs.sort((a,b)=>a.cost-b.cost);
+
+      const zoneFlow={};(profile.zones||[]).forEach(z=>{zoneFlow[z.id]={inflow:0,outflow:0};if(!flowEvents[z.id])flowEvents[z.id]=[];});
+      const next=[];
+
+      for(const p of pairs){
+        if(usedTracks.has(p.ti)||usedDetections.has(p.di))continue;
+        usedTracks.add(p.ti);usedDetections.add(p.di);
+        const old=previous[p.ti],d=detections[p.di];
+        d.trackId=old.id;
+        d.hits=(old.hits||1)+1;
+        d.misses=0;
+        d.vx=d.foot.x-old.x;d.vy=d.foot.y-old.y;
+        d.carried=false;
+        if(old.zoneId!==d.zoneId){
+          if(old.zoneId&&zoneFlow[old.zoneId]){zoneFlow[old.zoneId].outflow++;flowEvents[old.zoneId].push({t:videoTimeMs,type:'out'});}
+          if(d.zoneId&&zoneFlow[d.zoneId]){zoneFlow[d.zoneId].inflow++;flowEvents[d.zoneId].push({t:videoTimeMs,type:'in'});}
+        }
+        next.push({id:d.trackId,x:d.foot.x,y:d.foot.y,vx:d.vx,vy:d.vy,h:d.bbox[3],zoneId:d.zoneId,hits:d.hits,misses:0,score:d.score,lastSeen:now,bbox:d.bbox,carried:false});
+      }
+
+      // New observations become fresh anonymous tracks.
+      detections.forEach((d,di)=>{
+        if(usedDetections.has(di))return;
+        d.trackId=nextTrackId++;d.hits=1;d.misses=0;d.vx=0;d.vy=0;d.carried=false;
+        next.push({id:d.trackId,x:d.foot.x,y:d.foot.y,vx:0,vy:0,h:d.bbox[3],zoneId:d.zoneId,hits:1,misses:0,score:d.score,lastSeen:now,bbox:d.bbox,carried:false});
+      });
+
+      // Keep only previously-confirmed tracks through very short detector dropouts.
+      previous.forEach((t,ti)=>{
+        if(usedTracks.has(ti))return;
+        const misses=(t.misses||0)+1;
+        if((t.hits||0)<opts.confirmHits||misses>opts.carryMisses)return;
+        const nx=clamp(t.x+(t.vx||0),0,w),ny=clamp(t.y+(t.vy||0),0,h);
+        const zone=zoneAt(nx,ny,profile,w,h);
+        // Track persistence is evidence-based: it can survive only ~2 samples, never indefinitely.
+        next.push(Object.assign({},t,{x:nx,y:ny,zoneId:zone?zone.id:null,misses,score:(t.score||.5)*.82,carried:true}));
+      });
+
+      tracks=next;
+      const sampleIntervalSec=previousTimestamp!==null?Math.max(.01,(videoTimeMs-previousTimestamp)/1000):null;
+      previousTimestamp=videoTimeMs;
+      if(firstVideoTimeMs===null)firstVideoTimeMs=videoTimeMs;
+      const elapsedMs=Math.max(0,videoTimeMs-firstVideoTimeMs);
+      const rollingFlow={};
+      (profile.zones||[]).forEach(z=>{
+        flowEvents[z.id]=(flowEvents[z.id]||[]).filter(e=>videoTimeMs-e.t<=FLOW_WINDOW_MS && videoTimeMs-e.t>=0);
+        const windowMs=Math.min(FLOW_WINDOW_MS,elapsedMs);
+        const ready=windowMs>=FLOW_WARMUP_MS;
+        const ins=flowEvents[z.id].filter(e=>e.type==='in').length,outs=flowEvents[z.id].filter(e=>e.type==='out').length;
+        const minutes=Math.max(1/60,windowMs/60000);
+        rollingFlow[z.id]={inflowPerMin:ready?ins/minutes:0,outflowPerMin:ready?outs/minutes:0,windowSec:windowMs/1000,ready,eventsIn:ins,eventsOut:outs};
+      });
+      return {zoneFlow,rollingFlow,sampleIntervalSec};
+    }
+
+    function qualityMetrics(observed,active,fullCount,tiledCount){
+      const avgScore=observed.length?observed.reduce((s,d)=>s+d.score,0)/observed.length:0;
+      const carried=active.filter(t=>t.carried).length;
+      const confirmed=active.filter(t=>(t.hits||0)>=opts.confirmHits).length;
+      const carryRatio=active.length?carried/active.length:0;
+      const confirmRatio=active.length?confirmed/active.length:0;
+      const disagreement=(fullCount!==null&&Math.max(fullCount,tiledCount)>0)
+        ? Math.abs(fullCount-tiledCount)/Math.max(fullCount,tiledCount):0;
+      let confidence=34+avgScore*38+confirmRatio*20-carryRatio*25-disagreement*18;
+      if(active.length===0)confidence=Math.max(confidence,58); // empty scene can be legitimate; still not high-confidence.
+      confidence=Math.round(clamp(confidence,20,96));
+      let label=confidence>=75?'HIGH':confidence>=58?'MEDIUM':'LOW';
+      return {confidence,label,avgScore:Math.round(avgScore*100),carried,confirmed,disagreement:Math.round(disagreement*100)};
+    }
+
+    async function analyse(video,canvas,profile){
+      if(!model)await load();
+      const w=video.videoWidth||960,h=video.videoHeight||540;
+      const ctx=canvas.getContext('2d');canvas.width=w;canvas.height=h;ctx.clearRect(0,0,w,h);
+      sampleIndex++;
+
+      // Main count source: multi-scale per-zone crops. Every third sample also runs the full frame
+      // as an independent QA view; union+NMS improves recall without hard-coded person counts.
+      const tiled=await detectZoneCrops(video,profile,w,h);
+      let full=[];
+      if(sampleIndex%3===1)full=await detectFullFrame(video,profile,w,h);
+      const observed=suppressDuplicates([...tiled,...full]);
+      // Use VIDEO TIME, not wall-clock inference time, for all movement rates.
+      const videoTimeMs=Math.max(0,(Number(video.currentTime)||0)*1000);
+      const tracking=matchTracks(observed,profile,w,h,videoTimeMs);
+
+      const active=tracks.filter(t=>t.zoneId);
+      const counts={};const observedCounts={};const recoveredCounts={};
+      (profile.zones||[]).forEach(z=>{counts[z.id]=0;observedCounts[z.id]=0;recoveredCounts[z.id]=0;});
+      observed.forEach(d=>{if(d.zoneId)observedCounts[d.zoneId]=(observedCounts[d.zoneId]||0)+1;});
+      active.forEach(t=>{
+        counts[t.zoneId]=(counts[t.zoneId]||0)+1;
+        if(t.carried)recoveredCounts[t.zoneId]=(recoveredCounts[t.zoneId]||0)+1;
+      });
+
+      // LIVE crowd evidence for occlusion-resistant pressure classification.
+      // This does NOT invent extra people. It measures how tightly the actual detected person boxes
+      // pack each zone, alongside the tracked-person density. Dense occluded scenes therefore remain
+      // visually high-pressure even when COCO cannot separate every individual.
+      const crowdEvidence={};
+      (profile.zones||[]).forEach(z=>{
+        const zx=z.rect.x*w,zy=z.rect.y*h,zw=z.rect.w*w,zh=z.rect.h*h,zoneArea=Math.max(1,zw*zh);
+        let boxAreaSum=0;
+        observed.forEach(d=>{
+          if(d.zoneId!==z.id)return;
+          const [x,y,bw,bh]=d.bbox;
+          const ix=Math.max(0,Math.min(x+bw,zx+zw)-Math.max(x,zx));
+          const iy=Math.max(0,Math.min(y+bh,zy+zh)-Math.max(y,zy));
+          boxAreaSum+=ix*iy;
+        });
+        const bboxPacking=clamp(boxAreaSum/zoneArea,0,1.35);
+        const areaFraction=Math.max(.001,z.rect.w*z.rect.h);
+        const pp10=(counts[z.id]||0)/(areaFraction*10);
+        // Count pressure is deliberately much more sensitive than the old /6 heuristic.
+        // ~0.35 p/10% frame = sparse; ~1.2 = moderate; ~2.2+ = very crowded.
+        const countPressure=clamp((pp10-.35)/1.85*100,0,100);
+        // Bounding-box packing captures visible crowd occlusion/packing without changing person count.
+        const packingPressure=clamp((bboxPacking-.08)/.52*100,0,100);
+        const visualPressure=Math.round(clamp(Math.max(countPressure*.72+packingPressure*.28,packingPressure*.88),0,100));
+        crowdEvidence[z.id]={bboxPacking,countPressure,packingPressure,visualPressure};
+      });
+
+      // Initial draw; app immediately recolours these boxes from the computed live risk state.
+      observed.forEach(d=>{
+        const [x,y,bw,bh]=d.bbox,color=(d.zone&&d.zone.color)||'#5de1e6';
+        ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2;ctx.setLineDash([]);ctx.strokeRect(x,y,bw,bh);
+        ctx.font='12px Inter';ctx.fillText(d.zone?`Person · ${d.zone.label}`:'Person',x,Math.max(12,y-4));
+        ctx.beginPath();ctx.arc(d.foot.x,d.foot.y,3,0,Math.PI*2);ctx.fill();
+      });
+      active.filter(t=>t.carried).forEach(t=>{
+        const z=(profile.zones||[]).find(x=>x.id===t.zoneId);ctx.strokeStyle=(z&&z.color)||'#f5c451';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
+        const [x,y,bw,bh]=t.bbox||[t.x-10,t.y-30,20,30];ctx.strokeRect(x+(t.vx||0),y+(t.vy||0),bw,bh);ctx.setLineDash([]);
+      });
+
+      const q=qualityMetrics(observed,active,full.length?full.length:null,tiled.length);
+      return {
+        counts,observedCounts,recoveredCounts,
+        entranceCounts:{},
+        zoneFlow:tracking.zoneFlow,
+        rollingFlow:tracking.rollingFlow,
+        sampleIntervalSec:tracking.sampleIntervalSec,
+        detections:observed,
+        total:active.length,
+        observedTotal:observed.length,
+        recoveredTotal:q.carried,
+        timestamp:videoTimeMs,
+        videoTimeMs,
+        modelConfidence:q.confidence,
+        quality:q,
+        crowdEvidence,
+        activeTracks:active.map(t=>Object.assign({},t)),
+        qa:{tiledDetections:tiled.length,fullFrameDetections:full.length,fullFrameRan:full.length>0||sampleIndex%3===1}
+      };
+    }
+
+    function renderRisk(canvas,frame,analysis){
+      if(!canvas||!frame||!analysis)return;
+      const ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);
+      const color=r=>r>=62?'#ff5c6c':r>=38?'#f5c451':'#58d68d';
+      const riskByZone={};(analysis.zones||[]).forEach(z=>riskByZone[z.id]=z.risk);
+      (frame.detections||[]).forEach(d=>{
+        const [x,y,bw,bh]=d.bbox,c=color(riskByZone[d.zoneId]||0);
+        ctx.strokeStyle=c;ctx.fillStyle=c;ctx.lineWidth=2.4;ctx.setLineDash([]);ctx.strokeRect(x,y,bw,bh);
+        ctx.font='12px Inter';ctx.fillText(d.zone?`Person · ${d.zone.label}`:'Person',x,Math.max(12,y-4));
+        ctx.beginPath();ctx.arc(d.foot.x,d.foot.y,3,0,Math.PI*2);ctx.fill();
+      });
+      (frame.activeTracks||[]).filter(t=>t.carried).forEach(t=>{
+        const c=color(riskByZone[t.zoneId]||0);ctx.strokeStyle=c;ctx.lineWidth=1.6;ctx.setLineDash([5,4]);
+        const [x,y,bw,bh]=t.bbox||[t.x-10,t.y-30,20,30];ctx.strokeRect(x+(t.vx||0),y+(t.vy||0),bw,bh);ctx.setLineDash([]);
+      });
+    }
+
+    function clear(canvas){if(canvas){const c=canvas.getContext('2d');c.clearRect(0,0,canvas.width,canvas.height);}}
+    return {load,analyse,renderRisk,clear,resetTracking,getModel:()=>model};
+  }
+
+  global.createVisionEngine=createVisionEngine;
+})(window);
+
+</script>
+<!-- END vision.js -->
+
+<!-- BEGIN intelligence.js -->
+<script>
+/* CrowdShield — LIVE CROWD PRESSURE + TRUE-METRICS FORECAST ENGINE
+   Safety rule: static crowd pressure is available from the FIRST analysed frame.
+   Only time-dependent metrics (growth / flow / TTC) warm up over multiple video-time samples.
+   No filename profiles, no video-specific fallbacks, no synthetic crowd counts.
+*/
+(function(global){
+  'use strict';
+  function createIntelligenceEngine(config){
+    const cfg=Object.assign({historyMs:12000,trendMs:8000,minSamples:3,minQualityForDecision:56},config||{});
+    let history={};
+    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+    const median=a=>{if(!a.length)return 0;const s=[...a].sort((x,y)=>x-y),m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2;};
+    function reset(profile){history={};((profile&&profile.zones)||[]).forEach(z=>history[z.id]=[]);}
+    function push(id,count,t){if(!history[id])history[id]=[];history[id].push({t,c:count});history[id]=history[id].filter(x=>t-x.t<=cfg.historyMs);}
+    function stable(id){const v=(history[id]||[]).slice(-5).map(x=>x.c);return v.length?Math.round(median(v)):0;}
+    function trend(id){
+      const h=history[id]||[];if(h.length<cfg.minSamples)return 0;
+      const cutoff=h[h.length-1].t-cfg.trendMs,r=h.filter(x=>x.t>=cutoff);if(r.length<cfg.minSamples)return 0;
+      const n=r.length,mt=r.reduce((s,x)=>s+x.t,0)/n,mc=r.reduce((s,x)=>s+x.c,0)/n;
+      let num=0,den=0;r.forEach(x=>{num+=(x.t-mt)*(x.c-mc);den+=(x.t-mt)*(x.t-mt);});
+      return den?(num/den)*60000:0;
+    }
+    function ttc(count,critical,netRate,flowReady,uncertain){
+      if(uncertain)return 'Uncertain';
+      if(!Number.isFinite(critical)||critical<=0)return 'SET LIMIT';
+      if(count>=critical)return 'CRITICAL NOW';
+      if(!flowReady)return 'WARMING';
+      if(!Number.isFinite(netRate)||netRate<=0.5)return 'Stable';
+      const sec=((critical-count)/netRate)*60;
+      if(sec>900)return '15+ min';
+      if(sec>=120)return `~${Math.round(sec/60)} min`;
+      return `~${Math.max(5,Math.round(sec/5)*5)} sec`;
+    }
+
+    // Risk is a derived pressure index. If a venue safe capacity exists, occupancy ratio dominates.
+    // Otherwise it uses LIVE visual crowd evidence from detector geometry (count density + bbox packing).
+    function pressureRisk(z,count,growth,netRate,visualPressure){
+      let base;
+      if(Number.isFinite(z.criticalOccupancy)&&z.criticalOccupancy>0){
+        base=clamp(count/z.criticalOccupancy,0,1.25)*82;
+      }else{
+        base=clamp(Number(visualPressure)||0,0,100)*0.92;
+      }
+      const growthBonus=clamp(Math.max(0,growth)*.35,0,8);
+      const netBonus=clamp(Math.max(0,netRate)*.20,0,7);
+      return Math.round(clamp(base+growthBonus+netBonus,0,100));
+    }
+    function label(r){return r>=82?'CRITICAL':r>=62?'HIGH RISK':r>=38?'MODERATE':'SAFE';}
+
+    function ingest(frame,profile){
+      const now=Number.isFinite(frame.videoTimeMs)?frame.videoTimeMs:0,defs=(profile&&profile.zones)||[];
+      if(!Object.keys(history).length)reset(profile);
+      defs.forEach(z=>push(z.id,(frame.counts&&frame.counts[z.id])||0,now));
+      const samples=Math.max(0,...Object.values(history).map(h=>h.length));
+      const temporalReady=samples>=cfg.minSamples;
+      const quality=Number.isFinite(frame.modelConfidence)?frame.modelConfidence:0;
+      const uncertain=quality<cfg.minQualityForDecision;
+
+      const zones=defs.map(z=>{
+        const count=stable(z.id),growth=trend(z.id);
+        const flow=(frame.rollingFlow&&frame.rollingFlow[z.id])||{inflowPerMin:0,outflowPerMin:0,windowSec:0,ready:false};
+        const inflow=flow.ready?flow.inflowPerMin:0,outflow=flow.ready?flow.outflowPerMin:0,netRate=inflow-outflow;
+        const areaFraction=Math.max(.001,z.rect.w*z.rect.h);
+        const visualDensity=count/(areaFraction*10);
+        const physicalDensity=(Number.isFinite(z.areaM2)&&z.areaM2>0)?count/z.areaM2:null;
+        const critical=(Number.isFinite(z.criticalOccupancy)&&z.criticalOccupancy>0)?z.criticalOccupancy:null;
+        const evidence=(frame.crowdEvidence&&frame.crowdEvidence[z.id])||{};
+        const visualPressure=Number.isFinite(evidence.visualPressure)?evidence.visualPressure:clamp((visualDensity-.35)/2.2*100,0,100);
+        const risk=pressureRisk(z,count,growth,netRate,visualPressure);
+        return Object.assign({},z,{
+          count,observedCount:(frame.observedCounts&&frame.observedCounts[z.id])||0,recoveredCount:(frame.recoveredCounts&&frame.recoveredCounts[z.id])||0,
+          growth,inflow,outflow,net:netRate,flowWindowSec:flow.windowSec,flowReady:flow.ready,
+          visualDensity,physicalDensity,criticalOccupancy:critical,visualPressure,
+          bboxPacking:Number(evidence.bboxPacking)||0,countPressure:Number(evidence.countPressure)||0,
+          risk,riskLabel:label(risk),
+          densityDisplay:physicalDensity!==null?`${physicalDensity.toFixed(2)} p/m²`:`${visualDensity.toFixed(2)} p/10% frame`,
+          densityCalibrated:physicalDensity!==null,
+          ttc:ttc(count,critical,netRate,flow.ready,uncertain),
+          spare:critical!==null?Math.max(0,critical-count):null,
+          uncertain,calibrating:!temporalReady
+        });
+      });
+
+      const sorted=[...zones].sort((a,b)=>b.risk-a.risk),focus=sorted[0]||null;
+      const alternatives=zones.filter(z=>!focus||z.id!==focus.id).sort((a,b)=>a.risk-b.risk),best=alternatives[0]||null;
+      let action;
+      // High visual pressure must NEVER be hidden behind a time-series warm-up state.
+      if(focus&&focus.risk>=62){
+        action={type:'reroute',text:`IMMEDIATE CROWD PRESSURE · REDUCE FLOW IN ${focus.label}`,
+          reason:`${focus.label} is already visually classified ${focus.riskLabel} from live crowd packing evidence${temporalReady?' plus measured trend/flow':' while trend/flow are still warming'}.`,
+          confidence:Math.min(92,Math.max(55,quality)),sourceId:focus.id,targetId:best?best.id:null};
+      }else if(uncertain){
+        action={type:'verify',text:'VISION UNCERTAIN · MANUAL CHECK',reason:`Perception confidence is ${quality}%. Low-risk output is not trusted when vision quality is weak.`,confidence:quality,targetId:null};
+      }else if(focus&&focus.risk>=38&&best){
+        action={type:'reroute',text:`REDUCE FLOW IN ${focus.label}`,reason:`${focus.label} has the highest live crowd-pressure index.`,confidence:Math.min(92,quality),sourceId:focus.id,targetId:best.id};
+      }else if(!temporalReady){
+        action={type:'wait',text:'MONITOR · FLOW METRICS WARMING',reason:'Current visual crowd pressure is low; collecting video-time samples for growth and flow.',confidence:Math.max(45,quality),targetId:null};
+      }else{
+        action={type:'keep',text:'MONITOR · NO ACTION',reason:'Current measured crowd-pressure index is below the intervention threshold.',confidence:Math.min(92,quality),targetId:null};
+      }
+      return {zones,focus,best,action,total:frame.total||0,observedTotal:frame.observedTotal||0,recoveredTotal:frame.recoveredTotal||0,modelConfidence:quality,quality:frame.quality||null,ready:temporalReady,temporalReady,uncertain,samples};
+    }
+    return {reset,ingest};
+  }
+  global.createIntelligenceEngine=createIntelligenceEngine;
+})(window);
+
+</script>
+<!-- END intelligence.js -->
+
+<!-- BEGIN ui.js -->
+<script>
+/* ============================================================
+   MODULE 3 — UI ENGINE
+   UI / INTERACTION ENGINE
+   ============================================================ */
+/*
+ TEAMMATE 4 — UI / INTERACTION ENGINE
+ Change rendering, cards, overlays, timeline, orbit and simulation presentation here.
+ Contract: createCrowdShieldUI() -> methods used by app.js.
+ Business rules are passed in as analysis objects rather than hard-coded here.
+*/
+(function(global){
+  function createCrowdShieldUI(){
+    const q=id=>document.getElementById(id),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+    const colorForRisk=(r)=>r>=62?'var(--red)':r>=38?'var(--yellow)':'var(--green)';
+    const badgeClass=(r)=>r>=62?'danger':r>=38?'moderate':'safe';
+    const usefulTrend=(z)=>{
+      if(z.ttc&&z.ttc!=='SET LIMIT')return z.ttc;
+      if(!z.flowReady)return 'WARMING';
+      if(z.net>2||z.growth>2)return 'RISING';
+      if(z.net<-2||z.growth<-2)return 'EASING';
+      return 'STABLE';
+    };
+    let latest=null,selectedAction=null;
+
+    function addEvent(title,text){const now=new Date().toLocaleTimeString([],{hour12:false});q('feed').insertAdjacentHTML('afterbegin',`<div class="event"><div class="time">${now}</div><div class="evt"><b>${title}</b><span>${text}</span></div></div>`)}
+    function setFile(file){q('fileChip').textContent=file?file.name:'No video loaded'}
+    function setStatus(text){q('analysisChip').textContent=text}
+    function showVideo(){q('video').style.display='block';q('emptyState').style.display='none'}
+    function setProgress(v){q('progress').style.width=`${clamp(v,0,100)}%`}
+
+    function renderProfile(profile){
+      q('zoneLayer').innerHTML='';q('zoneCards').innerHTML='';
+      (profile.zones||[]).forEach(z=>{
+        const o=document.createElement('div');o.className='dynamic-zone';o.dataset.zone=z.id;o.style.left=`${z.rect.x*100}%`;o.style.top=`${z.rect.y*100}%`;o.style.width=`${z.rect.w*100}%`;o.style.height=`${z.rect.h*100}%`;o.style.borderColor='var(--green)';o.innerHTML=`<span style="background:var(--green);color:#031014">${z.label} · SAFE · <b>0 people</b></span>`;q('zoneLayer').appendChild(o);
+        q('zoneCards').insertAdjacentHTML('beforeend',`<div class="zcard" data-card="${z.id}"><div class="name">${z.label}</div><div class="count-wrap"><div class="count">0</div><div class="count-label">TRACKED PEOPLE NOW</div></div><span class="badge safe">SAFE</span><div class="zone-extra"><span>Crowd pressure</span><b class="load">0% risk</b><span>Measured outflow</span><b class="widthFlow">WARMING</b></div></div>`);
+      });
+      (profile.entrances||[]).forEach(e=>{
+        const o=document.createElement('div');o.className='entrance-zone';o.dataset.entrance=e.id;o.style.left=`${e.rect.x*100}%`;o.style.top=`${e.rect.y*100}%`;o.style.width=`${e.rect.w*100}%`;o.style.height=`${e.rect.h*100}%`;o.innerHTML=`<span>${e.label}</span>`;q('zoneLayer').appendChild(o);
+      });
+      addEvent('Venue profile loaded',`${profile.name} · ${(profile.zones||[]).length} analysis zones. Live crowd pressure, tracked counts and movement trends are calculated from video evidence.`);
+    }
+
+    function renderSimulationOptions(analysis){
+      const previous=selectedAction?`${selectedAction.type}:${selectedAction.targetId||''}`:null;
+      q('simOptions').innerHTML='';
+      const keep={type:'keep',text:'KEEP CURRENT FLOW',targetId:null};
+      const allCritical=!analysis.uncertain&&analysis.ready&&analysis.zones.length>1&&analysis.zones.every(z=>z.risk>=82);
+      const opts=(!analysis.ready||analysis.uncertain)?[keep]:allCritical
+        ? [keep,{type:'meter',text:'CONTROL ENTRY / METER FLOW',targetId:null},{type:'staff',text:'DEPLOY STAFF TO ALL EXITS',targetId:null}]
+        : [keep,...analysis.zones.filter(z=>!analysis.focus||z.id!==analysis.focus.id).map(z=>({type:'reroute',text:`REDIRECT → ${z.label}`,targetId:z.id}))];
+      let chosen=opts.find(o=>`${o.type}:${o.targetId||''}`===previous)||opts.find(o=>analysis.action&&o.targetId===analysis.action.targetId)||opts[0];
+      opts.forEach(o=>{const active=o===chosen;const b=document.createElement('button');b.className='sim-option'+(active?' active':'');b.dataset.type=o.type;b.dataset.target=o.targetId||'';b.innerHTML=`${o.text}<small>${o.type==='keep'?'No routing change':o.type==='meter'?'Reduce arrivals to every exit':o.type==='staff'?'Improve discharge at every exit':'Use available capacity'}</small>`;b.addEventListener('click',()=>{q('simOptions').querySelectorAll('.sim-option').forEach(x=>x.classList.remove('active'));b.classList.add('active');selectedAction=o});q('simOptions').appendChild(b)});
+      selectedAction=chosen;
+    }
+
+    function renderAnalysis(a){
+      latest=a;if(!a.focus)return;
+      a.zones.forEach(z=>{
+        const card=document.querySelector(`[data-card="${z.id}"]`);if(card){
+          card.querySelector('.count').textContent=z.count;
+          const badge=card.querySelector('.badge');badge.className='badge '+badgeClass(z.risk);badge.textContent=z.riskLabel;
+          const load=card.querySelector('.load');if(load)load.textContent=`${z.risk}% · ${z.riskLabel}`;
+          const widthFlow=card.querySelector('.widthFlow');
+          const width=Number.isFinite(z.routeWidthM)&&z.routeWidthM>0?z.routeWidthM:null;
+          if(widthFlow)widthFlow.textContent=z.flowReady?(width?`${z.outflow.toFixed(1)}/min · ${(z.outflow/width).toFixed(1)}/min/m`:`${z.outflow.toFixed(1)} people/min`):'WARMING';
+        }
+        const overlay=document.querySelector(`.dynamic-zone[data-zone="${z.id}"]`);if(overlay){
+          const crowdColor=colorForRisk(z.risk);
+          overlay.style.borderColor=crowdColor;
+          const span=overlay.querySelector('span');span.style.background=crowdColor;span.firstChild.textContent=`${z.label} · ${z.riskLabel} · `;span.querySelector('b').textContent=`${z.count} ${z.count===1?'person':'people'}`;
+        }
+      });
+      const f=a.focus;if(q('densityLabel'))q('densityLabel').textContent=f.criticalOccupancy!==null?'OCCUPANCY LOAD':'VISUAL DENSITY';q('focusZone').textContent=f.label.toUpperCase();q('riskScore').textContent=`${f.risk}%`;q('riskScore').style.color=colorForRisk(f.risk);q('density').textContent=f.criticalOccupancy!==null?`${Math.round((f.count/f.criticalOccupancy)*100)}% CAP`:f.densityDisplay;q('inflow').textContent=f.flowReady?`${f.inflow.toFixed(1)}/min`:'WARMING';q('outflow').textContent=f.flowReady?`${f.outflow.toFixed(1)}/min`:'WARMING';q('ttc').textContent=usefulTrend(f);q('growth').textContent=`${f.growth>=0?'+':''}${Math.round(f.growth)} people/min`;q('focusFlow').textContent=f.flowReady?`${f.outflow.toFixed(1)}/min`:'WARMING';q('bestCapacity').textContent=a.best?`${a.best.label} · ${a.best.risk}% risk`:'—';q('metricConfidence').textContent=`${a.modelConfidence}%`;q('confidence').textContent=`${a.action.confidence}%`;q('recommendedAction').textContent=a.action.text;q('reason').textContent=a.action.reason;q('beforeRisk').textContent=`${f.risk}%`;q('beforeTime').textContent=usefulTrend(f);q('analysisChip').textContent=`Live crowd pressure · ${a.ready?'trend ready':'flow/trend warming'} · ${a.observedTotal} seen${a.recoveredTotal?` + ${a.recoveredTotal} recovered`:''} · quality ${a.modelConfidence}% · ${a.zones.map(z=>`${z.label} ${z.count}`).join(' / ')}`;
+      renderSimulationOptions(a);
+    }
+
+    function runSimulation(){
+      if(!latest||!latest.focus)return;
+      if(!latest.ready||latest.uncertain){q('afterRisk').textContent='—';q('afterTime').textContent=latest.ready?'Vision uncertain':'Still calibrating';q('decisionBox').textContent=latest.ready?'Simulation withheld until perception quality improves. CrowdShield will not project an intervention from weak visual evidence.':'Simulation becomes available after the live perception warm-up.';addEvent('Simulation withheld','Insufficient live perception confidence for a responsible projection.');return;}
+      const base=latest.focus.risk,target=selectedAction&&selectedAction.targetId?latest.zones.find(z=>z.id===selectedAction.targetId):null;
+      let projected=base-3,text='Minimal change · continue monitoring.';
+      if(selectedAction&&selectedAction.type==='meter'){
+        projected=Math.max(45,Math.round(base*.62));text='Metering incoming flow reduces pressure simultaneously across all overloaded exits.';
+      }else if(selectedAction&&selectedAction.type==='staff'){
+        projected=Math.max(55,Math.round(base*.72));text='Deploying operators at every exit improves lane discipline and controlled discharge, but entry control remains the stronger intervention.';
+      }else if(target){const advantage=Math.max(5,latest.focus.risk-target.risk);projected=Math.max(8,Math.round(base*(.72-Math.min(.22,advantage/200))));text=`Redirecting toward ${target.label} uses lower-risk spare capacity and reduces concentration near ${latest.focus.label}.`}
+      q('afterRisk').textContent='…';q('afterTime').textContent='Simulating flow…';q('simulateBtn').textContent='Simulating intervention…';setTimeout(()=>{q('afterRisk').textContent=`${Math.max(0,projected)}%`;q('afterTime').textContent=target?'Time-to-critical extended':'Minimal change';q('decisionBox').textContent=text;q('simulateBtn').textContent='Run intervention simulation';addEvent('Intervention simulated',`${base}% → ${Math.max(0,projected)}% projected risk.`)},500);
+    }
+    q('simulateBtn').addEventListener('click',runSimulation);
+    return {addEvent,setFile,setStatus,showVideo,setProgress,renderProfile,renderAnalysis};
+  }
+  global.createCrowdShieldUI=createCrowdShieldUI;
+})(window);
+
+</script>
+<!-- END ui.js -->
+
+<!-- BEGIN app.js -->
+<script>
+/* CrowdShield REAL MODE — one analysis path for every video.
+   No filename profiles, no video-specific count floors, no forced recommendations. */
+(function(){
+  'use strict';
+
+  const input=document.getElementById('videoInput');
+  const video=document.getElementById('video');
+  const canvas=document.getElementById('detectCanvas');
+  const ui=createCrowdShieldUI();
+  const vision=createVisionEngine({confidence:.30,maxDetections:100,minHeightRatio:.020,minWidthRatio:.004,modelBase:'mobilenet_v2',carryMisses:2,confirmHits:2});
+  const intelligence=createIntelligenceEngine({historyMs:12000,trendMs:8000,minSamples:3,minQualityForDecision:56});
+
+  const SAMPLE_MS=1250;
+  let timer=null,analysing=false,busy=false,modelReady=false;
+  let currentFile=null,currentUrl=null,transcodedUrl=null;
+  let transcodeAttempted=false,transcoding=false,ffmpegInstance=null;
+  let profile=null;
+
+  const transcodeBox=document.getElementById('transcodeStatus');
+  const transcodeText=document.getElementById('transcodeText');
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+  function showTranscode(text,show=true){
+    if(transcodeText)transcodeText.textContent=text;
+    if(transcodeBox)transcodeBox.classList.toggle('active',!!show);
+  }
+
+  function safeExt(name){
+    const m=(name||'').toLowerCase().match(/\.([a-z0-9]{1,8})$/);
+    return m?m[1]:'bin';
+  }
+
+  function stop(){
+    analysing=false;
+    if(timer){clearTimeout(timer);timer=null;}
+  }
+
+  function dynamicProfile(videoEl){
+    const w=videoEl.videoWidth||1280,h=videoEl.videoHeight||720;
+    const aspect=w/Math.max(1,h);
+    // Generic spatial lanes. These are analysis regions, not claimed physical exits.
+    const n=aspect>=2.15?4:(aspect>=1.15?3:2);
+    const labels=['ZONE A','ZONE B','ZONE C','ZONE D'];
+    const colors=['#58d68d'];
+    const zones=[];
+    const top=.08,bottom=.98,zoneH=bottom-top;
+    for(let i=0;i<n;i++){
+      const rect={x:i/n,y:top,w:1/n,h:zoneH};
+      // IMPORTANT: keep the proven TRUE_METRICS intelligence contract unchanged.
+      // criticalOccupancy is fed only by the operator's practical "Safe capacity" field.
+      // routeWidthM is display/context metadata only and NEVER changes classification.
+      zones.push({
+        id:`zone-${i+1}`,
+        label:labels[i],
+        rect,
+        areaM2:null,
+        criticalOccupancy:null,
+        routeWidthM:null,
+        color:colors[0],
+        enhancedDetection:false,
+        auto:true
+      });
+    }
+    return {
+      id:'real-dynamic',
+      name:`Live Dynamic Scene · ${n} analysis zones`,
+      dynamic:true,
+      generic:true,
+      zones,
+      entrances:[]
+    };
+  }
+
+
+  function renderMetricCalibration(){
+    const host=document.getElementById('metricCalibrationRows');
+    if(!host||!profile)return;
+    host.innerHTML='';
+    profile.zones.forEach(z=>{
+      const row=document.createElement('div');row.className='metric-cal-row';
+      row.innerHTML=`<span class="cal-zone-name">${z.label}</span><label class="cal-field"><span>Safe capacity</span><input type="number" min="1" step="1" placeholder="e.g. 30" aria-label="${z.label} safe occupancy capacity"><small>people</small></label><label class="cal-field"><span>Effective route width</span><input type="number" min="0.1" step="0.1" placeholder="e.g. 2.4" aria-label="${z.label} effective route width metres"><small>metres</small></label>`;
+      const [cap,width]=row.querySelectorAll('input');
+      cap.addEventListener('change',()=>{
+        const v=Number(cap.value);
+        // Translation layer ONLY: the proven engine still consumes criticalOccupancy.
+        z.criticalOccupancy=Number.isFinite(v)&&v>0?Math.round(v):null;
+        intelligence.reset(profile);
+        ui.addEvent('Venue limit updated',`${z.label} safe capacity ${z.criticalOccupancy?z.criticalOccupancy+' people':'cleared'}.`);
+      });
+      width.addEventListener('change',()=>{
+        const v=Number(width.value);
+        // Contextual display metric only. It does not feed risk, TTC, or zone classification.
+        z.routeWidthM=Number.isFinite(v)&&v>0?v:null;
+        ui.addEvent('Venue geometry updated',`${z.label} effective route width ${z.routeWidthM?z.routeWidthM+' m':'cleared'}.`);
+      });
+      host.appendChild(row);
+    });
+  }
+
+  function initialiseScene(){
+    if(!video.videoWidth||!video.videoHeight)return false;
+    profile=dynamicProfile(video);
+    intelligence.reset(profile);
+    vision.resetTracking();
+    ui.renderProfile(profile);
+    renderMetricCalibration();
+    ui.addEvent('Dynamic scene initialized',`${profile.zones.length} live analysis zones created from the video geometry. No saved video calibration was used.`);
+    return true;
+  }
+
+  async function analyseOnce(){
+    if(!profile||busy||video.paused||video.ended||video.readyState<2)return;
+    busy=true;
+    try{
+      const frame=await vision.analyse(video,canvas,profile);
+      // Absolutely no profile-specific substitution happens here.
+      const analysis=intelligence.ingest(frame,profile);
+      // Repaint person rectangles from LIVE risk: green=low, yellow=moderate, red=high/critical.
+      vision.renderRisk(canvas,frame,analysis);
+      ui.renderAnalysis(analysis);
+      ui.setStatus(`Live model · ${frame.observedTotal} seen + ${frame.recoveredTotal} short-term recovered · quality ${frame.modelConfidence}%`);
+    }catch(err){
+      console.error('Live inference failed',err);
+      ui.setStatus('Live detector error · playback continues');
+      ui.addEvent('Inference warning',err&&err.message?err.message:String(err));
+    }finally{
+      busy=false;
+    }
+  }
+
+  function start(){
+    stop();
+    analysing=true;
+    const loop=async()=>{
+      if(!analysing)return;
+      await analyseOnce();
+      if(analysing)timer=setTimeout(loop,SAMPLE_MS);
+    };
+    timer=setTimeout(loop,180);
+  }
+
+  async function getFFmpeg(){
+    if(ffmpegInstance)return ffmpegInstance;
+    if(!window.FFmpeg||!window.FFmpeg.createFFmpeg)throw new Error('Video compatibility engine could not load. Check internet access.');
+    ffmpegInstance=window.FFmpeg.createFFmpeg({
+      log:false,
+      corePath:'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+      progress:({ratio})=>{
+        if(Number.isFinite(ratio))showTranscode(`Converting video locally… ${clamp(Math.round(ratio*100),0,100)}%`);
+      }
+    });
+    if(!ffmpegInstance.isLoaded()){
+      showTranscode('Loading video compatibility engine…');
+      await ffmpegInstance.load();
+    }
+    return ffmpegInstance;
+  }
+
+  async function transcodeForBrowser(file){
+    if(transcoding||transcodeAttempted)return;
+    transcodeAttempted=true;
+    transcoding=true;
+    stop();
+    try{
+      video.pause();
+      if(file.size>350*1024*1024)throw new Error('Video is over 350 MB; browser-side conversion may exhaust memory. Use a shorter clip or preprocess it once with FFmpeg.');
+      showTranscode('Browser cannot decode this codec. Converting to H.264 MP4 locally…');
+      ui.setStatus('Converting video for browser compatibility…');
+      ui.addEvent('Compatibility conversion started',`${file.name} will be converted locally; the file is not uploaded to a server by CrowdShield.`);
+
+      const ff=await getFFmpeg();
+      const inName=`input_${Date.now()}.${safeExt(file.name)}`;
+      const outName=`crowdshield_${Date.now()}.mp4`;
+      ff.FS('writeFile',inName,await window.FFmpeg.fetchFile(file));
+      try{
+        await ff.run('-i',inName,'-map','0:v:0','-an','-vf',"scale=w='min(1280,iw)':h=-2",'-r','24','-c:v','libx264','-preset','ultrafast','-crf','25','-pix_fmt','yuv420p','-movflags','+faststart',outName);
+      }catch(first){
+        console.warn('Primary transcode failed; retrying',first);
+        try{ff.FS('unlink',outName)}catch(_){}
+        await ff.run('-i',inName,'-an','-c:v','libx264','-preset','ultrafast','-crf','27','-pix_fmt','yuv420p',outName);
+      }
+      const data=ff.FS('readFile',outName);
+      try{ff.FS('unlink',inName)}catch(_){}
+      try{ff.FS('unlink',outName)}catch(_){}
+      if(transcodedUrl)URL.revokeObjectURL(transcodedUrl);
+      transcodedUrl=URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'}));
+      if(currentUrl&&currentUrl!==transcodedUrl)URL.revokeObjectURL(currentUrl);
+      currentUrl=transcodedUrl;
+      profile=null;
+      video.src=currentUrl;
+      video.load();
+      showTranscode('Conversion complete · analysing the browser-safe copy.');
+      ui.addEvent('Compatibility conversion complete','Converted video is now entering the same live dynamic analysis pipeline.');
+    }catch(err){
+      console.error('Transcode failed',err);
+      showTranscode(`Conversion failed: ${err&&err.message?err.message:String(err)}`);
+      ui.setStatus('Video could not be decoded or converted');
+      ui.addEvent('Video compatibility error',err&&err.message?err.message:String(err));
+    }finally{
+      transcoding=false;
+    }
+  }
+
+  function loadModel(){
+    ui.setStatus('Loading person detector…');
+    return vision.load().then(()=>{
+      modelReady=true;
+      ui.setStatus(profile?'Person detector ready · live analysis active':'Person detector ready · waiting for video');
+      ui.addEvent('Detection model ready','COCO-SSD MobileNet v2 loaded with multi-scale zone crops, duplicate suppression and short-term anonymous track recovery. No static crowd counts are used.');
+      if(profile&&video.readyState>=2)video.play().catch(()=>{});
+    }).catch(err=>{
+      modelReady=false;
+      ui.setStatus('Person detector unavailable · check internet/CDN access');
+      ui.addEvent('Detection model unavailable',err&&err.message?err.message:String(err));
+      console.error(err);
+    });
+  }
+
+  document.getElementById('uploadBtn').addEventListener('click',()=>input.click());
+  input.addEventListener('change',e=>{
+    const file=e.target.files&&e.target.files[0];
+    if(!file)return;
+    stop();
+    currentFile=file;
+    profile=null;
+    transcodeAttempted=false;
+    showTranscode('',false);
+    vision.resetTracking();
+    vision.clear(canvas);
+    if(currentUrl)URL.revokeObjectURL(currentUrl);
+    if(transcodedUrl){URL.revokeObjectURL(transcodedUrl);transcodedUrl=null;}
+    currentUrl=URL.createObjectURL(file);
+    ui.setFile(file);
+    ui.showVideo();
+    ui.setStatus('Decoding video…');
+    ui.addEvent('Video uploaded',`${file.name} will be analysed dynamically. No filename-specific scenario is selected.`);
+    video.src=currentUrl;
+    video.load();
+    if(!modelReady)loadModel();
+  });
+
+  video.addEventListener('loadedmetadata',()=>{
+    if(!currentFile)return;
+    initialiseScene();
+    ui.setStatus(modelReady?'Dynamic scene ready · starting analysis':'Dynamic scene ready · loading detector…');
+  });
+
+  video.addEventListener('loadeddata',()=>{
+    if(!profile)initialiseScene();
+    if(modelReady&&profile)video.play().catch(()=>{});
+  });
+
+  video.addEventListener('canplay',()=>{
+    if(!profile)initialiseScene();
+    if(transcodedUrl)showTranscode('Converted video ready · live analysis active.');
+  });
+
+  video.addEventListener('play',()=>{
+    if(!profile)initialiseScene();
+    if(!profile)return;
+    if(!modelReady){
+      video.pause();
+      ui.setStatus('Waiting for person detector…');
+      return;
+    }
+    ui.addEvent('Live analysis started',`${profile.name}: live detections, tracking, density, flow and forecasting enabled.`);
+    start();
+  });
+
+  video.addEventListener('pause',stop);
+  video.addEventListener('seeking',()=>{vision.resetTracking();intelligence.reset(profile||{zones:[]});});
+  video.addEventListener('ended',()=>{
+    stop();
+    ui.setProgress(100);
+    ui.setStatus('Dynamic video analysis complete · final observed state shown');
+    ui.addEvent('Analysis complete','Final result is based on the detector/tracker history from this video only.');
+  });
+  video.addEventListener('timeupdate',()=>ui.setProgress(video.duration?(video.currentTime/video.duration)*100:0));
+
+  video.addEventListener('error',()=>{
+    const err=video.error;
+    console.warn('HTML5 video error',err&&err.code,err&&err.message);
+    if(currentFile&&!transcodeAttempted){
+      transcodeForBrowser(currentFile);
+    }else if(!transcoding){
+      ui.setStatus('Video could not be decoded in this browser');
+      ui.addEvent('Video load error',err&&err.message?err.message:`Media error ${err&&err.code?err.code:'unknown'}`);
+    }
+  });
+
+  // Preload detector after page load; upload does not depend on it finishing first.
+  loadModel();
+})();
+
+</script>
+<!-- END app.js -->
+</body>
+</html>
